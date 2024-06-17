@@ -9,7 +9,6 @@ const cors = require("cors");
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
-app.use(cors({ origin: "http://localhost:3000" })); // Allow requests from your frontend
 app.use(express.json()); // Middleware to parse JSON bodies
 
 // Wait for the database connection to establish before starting the server
@@ -22,7 +21,6 @@ connection
         const filePath = req.file.path;
         const metadata = await exiftool.read(filePath);
 
-        // Save metadata to MongoDB
         const newMetadata = new MetadataModel({
           tags: metadata,
           sourceFile: filePath,
