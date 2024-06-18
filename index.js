@@ -48,7 +48,7 @@ connection
         res.status(500).send("Error extracting metadata");
       }
     });
-
+    //MongoDB
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
