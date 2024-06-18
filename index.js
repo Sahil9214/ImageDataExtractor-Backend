@@ -61,7 +61,14 @@ connection
         res.status(500).send("Error extracting metadata");
       }
     });
-
+    app.get("/metadata", async (req, res) => {
+      try {
+        const metadataList = await MetadataModel.find({});
+        res.json(metadataList);
+      } catch (error) {
+        res.status(500).send("Error fetching metadata");
+      }
+    });
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
