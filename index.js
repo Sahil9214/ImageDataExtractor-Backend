@@ -10,10 +10,9 @@ const fs = require("fs");
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
-app.use(express.json()); // Middleware to parse JSON bodies
-app.use(cors()); // Correctly enabling CORS middleware
+app.use(express.json());
+app.use(cors());
 
-// Wait for the database connection to establish before starting the server
 connection
   .then(() => {
     console.log("Connected to MongoDB");
@@ -23,9 +22,23 @@ connection
       try {
         const metadata = await exiftool.read(filePath);
 
+        const additionalMetadata = {
+          file_name: req.file.originalname,
+          file_size: req.file.size,
+          file_type: req.file.mimetype,
+          ...metadata,
+        };
+
         const newMetadata = new MetadataModel({
-          tags: metadata,
-          sourceFile: filePath,
+          name: req.file.originalname,
+          lastModifiedDate: metadata.ModifyDate
+            ? new Date(metadata.ModifyDate)
+            : new Date(), // Fallback to current date if not available
+          size: req.file.size,
+          type: req.file.mimetype,
+          location: metadata.GPSPosition || "Unknown", // Fallback to "Unknown" if not available
+          byte: req.file.size,
+          tags: additionalMetadata, // Store all metadata in the tags field
         });
 
         await newMetadata.save();
@@ -48,7 +61,7 @@ connection
         res.status(500).send("Error extracting metadata");
       }
     });
-    //MongoDB
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
