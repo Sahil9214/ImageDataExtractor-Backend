@@ -22,7 +22,7 @@ connection
 
     app.post("/upload", upload.single("image"), async (req, res) => {
       const filePath = req.file.path;
-      const xmlDirectoryPath = "path/to/xml/files"; // Update to your actual XML directory path
+      const xmlDirectoryPath = "./xmlFile"; // Update to your actual XML directory path
 
       try {
         // Extract metadata using exiftool
