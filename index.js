@@ -55,6 +55,7 @@ connection
 
           // Check for corresponding XML file and process annotations
           const xmlFileName = `${path.parse(req.file.originalname).name}.xml`;
+          console.log(xmlFileName, "***********************");
           const xmlFilePath = path.join(xmlDirectoryPath, xmlFileName);
 
           if (fs.existsSync(xmlFilePath)) {
