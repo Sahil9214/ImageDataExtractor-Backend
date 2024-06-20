@@ -18,10 +18,15 @@ connection.then(() => {
 
   // Endpoint to handle image upload and annotation
   app.post("/upload", upload.single("image"), async (req, res) => {
+    // Check if the file was received
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded." });
+    }
+
     const filePath = req.file.path;
+
     try {
       const metadata = await exiftool.read(filePath);
-
       const additionalMetadata = {
         file_name: req.file.originalname,
         file_size: req.file.size,
@@ -33,32 +38,26 @@ connection.then(() => {
         name: req.file.originalname,
         lastModifiedDate: metadata.ModifyDate
           ? new Date(metadata.ModifyDate)
-          : new Date(), // Fallback to current date if not available
+          : new Date(),
         size: req.file.size,
         type: req.file.mimetype,
-        location: metadata.GPSPosition || "Unknown", // Fallback to "Unknown" if not available
+        location: metadata.GPSPosition || "Unknown",
         byte: req.file.size,
-        tags: additionalMetadata, // Store all metadata in the tags field
+        tags: additionalMetadata,
       });
 
       await newMetadata.save();
-
+      res.json(metadata);
+    } catch (error) {
+      console.error("Error extracting metadata:", error);
+      res.status(500).send("Error extracting metadata");
+    } finally {
       // Clean up the uploaded file
       fs.unlink(filePath, (err) => {
         if (err) {
           console.error(`Error deleting file: ${filePath}`, err);
         }
       });
-
-      res.json(metadata);
-    } catch (error) {
-      // Clean up the uploaded file in case of error
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error(`Error deleting file: ${filePath}`, err);
-        }
-      });
-      res.status(500).send("Error extracting metadata");
     }
   });
 
