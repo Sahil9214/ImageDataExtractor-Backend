@@ -1,100 +1,49 @@
 const express = require("express");
 const multer = require("multer");
 const { exiftool } = require("exiftool-vendored");
-const { MetadataModel, AnnotationModel } = require("./model/Image.model"); // Assuming you have a model for annotations
+const { MetadataModel } = require("./model/Image.model");
 const { connection } = require("./db");
 require("dotenv").config();
 const cors = require("cors");
-const fs = require("fs");
 
 const app = express();
 const upload = multer({ dest: "uploads/" });
 
-app.use(express.json());
 app.use(cors());
+app.use(express.json()); // Middleware to parse JSON bodies
 
-connection.then(() => {
-  console.log("Connected to MongoDB");
+// Wait for the database connection to establish before starting the server
+connection
+  .then(() => {
+    console.log("Connected to MongoDB");
 
-  // Endpoint to handle image upload and annotation
-  app.post("/upload", upload.single("image"), async (req, res) => {
-    // Check if the file was received
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded." });
-    }
+    app.post("/upload", upload.single("image"), async (req, res) => {
+      try {
+        const filePath = req.file.path;
+        const metadata = await exiftool.read(filePath);
 
-    const filePath = req.file.path;
+        // Save metadata to MongoDB
+        const newMetadata = new MetadataModel({
+          tags: metadata,
+          sourceFile: filePath,
+        });
 
-    try {
-      const metadata = await exiftool.read(filePath);
-      const additionalMetadata = {
-        file_name: req.file.originalname,
-        file_size: req.file.size,
-        file_type: req.file.mimetype,
-        ...metadata,
-      };
+        await newMetadata.save();
 
-      const newMetadata = new MetadataModel({
-        name: req.file.originalname,
-        lastModifiedDate: metadata.ModifyDate
-          ? new Date(metadata.ModifyDate)
-          : new Date(),
-        size: req.file.size,
-        type: req.file.mimetype,
-        location: metadata.GPSPosition || "Unknown",
-        byte: req.file.size,
-        tags: additionalMetadata,
-      });
+        res.json(metadata);
+      } catch (error) {
+        res.status(500).send("Error extracting metadata");
+      }
+    });
 
-      await newMetadata.save();
-      res.json(metadata);
-    } catch (error) {
-      console.error("Error extracting metadata:", error);
-      res.status(500).send("Error extracting metadata");
-    } finally {
-      // Clean up the uploaded file
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          console.error(`Error deleting file: ${filePath}`, err);
-        }
-      });
-    }
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Could not connect to MongoDB:", err);
   });
-
-  // Endpoint to store image annotation
-  app.post("/annotate", async (req, res) => {
-    const { imageId, annotations } = req.body;
-
-    try {
-      // Save annotations to MongoDB
-      const newAnnotations = new AnnotationModel({
-        imageId,
-        annotations,
-      });
-
-      await newAnnotations.save();
-
-      res.status(200).json({ message: "Annotations saved successfully." });
-    } catch (error) {
-      console.error("Error saving annotations:", error);
-      res.status(500).send("Error saving annotations.");
-    }
-  });
-
-  app.get("/metadata", async (req, res) => {
-    try {
-      const metadataList = await MetadataModel.find({});
-      res.json(metadataList);
-    } catch (error) {
-      res.status(500).send("Error fetching metadata");
-    }
-  });
-
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-});
 //****************************** */ !New Code ********************************************************************
 //****************************** */ !New Code ********************************************************************
 //****************************** */ !New Code ********************************************************************
