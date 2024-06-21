@@ -24,6 +24,15 @@ connection
       const xmlFolderPath = "path/to/xml/files"; // Change this to your XML folder path
 
       try {
+        // Check if a file with the same name is already saved
+        const existingMetadata = await MetadataModel.findOne({
+          name: imageName,
+        });
+        if (existingMetadata) {
+          await fs.unlink(filePath);
+          return res.status(400).json({ error: "This file is already saved" });
+        }
+
         // Extract metadata using exiftool
         const metadata = await exiftool.read(filePath);
 
