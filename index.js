@@ -21,7 +21,7 @@ connection
     app.post("/upload", upload.single("image"), async (req, res) => {
       const filePath = req.file.path;
       const imageName = req.file.originalname;
-      const xmlFolderPath = "path/to/xml/files"; // Change this to your XML folder path
+      const xmlFolderPath = "./xmlFile/wallpaper3.xml"; // Change this to your XML folder path
 
       try {
         // Check if a file with the same name is already saved
