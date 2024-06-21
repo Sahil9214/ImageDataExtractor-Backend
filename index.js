@@ -54,6 +54,15 @@ connection
       }
     });
 
+    app.get("/metadata", async (req, res) => {
+      try {
+        const allMetadata = await MetadataModel.find({});
+        res.status(200).json(allMetadata);
+      } catch (error) {
+        res.status(500).json({ error });
+      }
+    });
+
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
