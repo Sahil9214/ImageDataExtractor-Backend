@@ -3,7 +3,7 @@ const multer = require("multer");
 const { exiftool } = require("exiftool-vendored");
 const { MetadataModel } = require("./model/Image.model");
 const { connection } = require("./db");
-const fs = require("fs");
+const fs = require("fs").promises;
 const cors = require("cors");
 require("dotenv").config();
 
@@ -38,19 +38,19 @@ connection
         await newMetadata.save();
 
         // Clean up the uploaded file
-        fs.unlink(filePath, (err) => {
-          if (err) console.error(`Error deleting file: ${filePath}`, err);
-        });
+        await fs.unlink(filePath);
 
         res.status(200).send("File uploaded and metadata saved successfully");
       } catch (error) {
         console.error("Error processing file:", error);
 
-        fs.unlink(filePath, (err) => {
-          if (err) console.error(`Error deleting file: ${filePath}`, err);
-        });
+        await fs
+          .unlink(filePath)
+          .catch((err) =>
+            console.error(`Error deleting file: ${filePath}`, err)
+          );
 
-        res.status(500).send("Error processing file");
+        res.status(500).json({ error: "Error processing file" });
       }
     });
 
