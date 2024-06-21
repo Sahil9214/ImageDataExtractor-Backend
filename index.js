@@ -5,6 +5,7 @@ const { MetadataModel } = require("./model/Image.model");
 const { connection } = require("./db");
 const fs = require("fs").promises;
 const cors = require("cors");
+const xml2js = require("xml2js");
 require("dotenv").config();
 
 const app = express();
@@ -19,13 +20,38 @@ connection
 
     app.post("/upload", upload.single("image"), async (req, res) => {
       const filePath = req.file.path;
-      console.log("**********filePath**********", filePath);
+      const imageName = req.file.originalname;
+      const xmlFolderPath = "path/to/xml/files"; // Change this to your XML folder path
 
       try {
+        // Extract metadata using exiftool
         const metadata = await exiftool.read(filePath);
 
+        // Find the corresponding XML file
+        const xmlFileName = `${xmlFolderPath}/${imageName.split(".")[0]}.xml`;
+        const xmlData = await fs.readFile(xmlFileName, "utf8");
+
+        // Parse XML file
+        const parser = new xml2js.Parser();
+        const result = await parser.parseStringPromise(xmlData);
+
+        // Extract annotation data
+        const annotation = result.annotation;
+        const objects = annotation.object.map((obj) => ({
+          name: obj.name[0],
+          pose: obj.pose[0],
+          truncated: obj.truncated[0],
+          difficult: obj.difficult[0],
+          bndbox: {
+            xmin: parseInt(obj.bndbox[0].xmin[0], 10),
+            ymin: parseInt(obj.bndbox[0].ymin[0], 10),
+            xmax: parseInt(obj.bndbox[0].xmax[0], 10),
+            ymax: parseInt(obj.bndbox[0].ymax[0], 10),
+          },
+        }));
+
         const newMetadata = new MetadataModel({
-          name: req.file.originalname,
+          name: imageName,
           lastModifiedDate: metadata.ModifyDate
             ? new Date(metadata.ModifyDate)
             : new Date(),
@@ -34,6 +60,19 @@ connection
           location: metadata.GPSPosition || "Unknown",
           byte: req.file.size,
           tags: metadata,
+          annotation: {
+            folder: annotation.folder[0],
+            filename: annotation.filename[0],
+            path: annotation.path[0],
+            source: annotation.source[0].database[0],
+            size: {
+              width: parseInt(annotation.size[0].width[0], 10),
+              height: parseInt(annotation.size[0].height[0], 10),
+              depth: parseInt(annotation.size[0].depth[0], 10),
+            },
+            segmented: parseInt(annotation.segmented[0], 10),
+            objects: objects,
+          },
         });
 
         await newMetadata.save();
