@@ -11,7 +11,7 @@ const app = express();
 const upload = multer({ dest: "uploads/" });
 
 app.use(cors());
-app.use(express.json()); // Middleware to parse JSON bodies
+app.use(express.json());
 
 connection
   .then(() => {
@@ -19,6 +19,7 @@ connection
 
     app.post("/upload", upload.single("image"), async (req, res) => {
       const filePath = req.file.path;
+      console.log("**********filePath**********", filePath);
 
       try {
         const metadata = await exiftool.read(filePath);
@@ -37,7 +38,6 @@ connection
 
         await newMetadata.save();
 
-        // Clean up the uploaded file
         await fs.unlink(filePath);
 
         res.status(200).send("File uploaded and metadata saved successfully");
