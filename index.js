@@ -56,24 +56,29 @@ connection
         }
 
         // Read XML file for annotations
-        const xmlFilePath = `./xmlFile/${fileName}.xml`; // adjust the path as needed
+        let newFileName = fileName.replace(/\.[^/.]+$/, "");
+        const xmlFilePath = `./xmlFile/${newFileName}.xml`;
+
+        // console.log(fs.existsSync(xmlFilePath), "&&&&&&&&&&&&&&&&&&&&&&&&&&"); // adjust the path as needed
         if (fs.existsSync(xmlFilePath)) {
           const xmlData = fs.readFileSync(xmlFilePath, "utf-8");
+          console.log("xmlData", xmlData);
           const parsedXml = await xmlParser.parseStringPromise(xmlData);
-
-          // Extract annotation data from XML
-          annotations = parsedXml.annotation.object.map((obj) => ({
-            name: obj.name[0],
-            bndbox: {
-              xmin: parseInt(obj.bndbox[0].xmin[0]),
-              ymin: parseInt(obj.bndbox[0].ymin[0]),
-              xmax: parseInt(obj.bndbox[0].xmax[0]),
-              ymax: parseInt(obj.bndbox[0].ymax[0]),
-            },
-            height: parseInt(obj.size[0].height[0]),
-            width: parseInt(obj.size[0].width[0]),
-          }));
+          console.log("parsedXml", parsedXml);
+          const annotationObjects = parsedXml.annotation.object;
+          if (Array.isArray(annotationObjects)) {
+            annotations = annotationObjects.map((obj) => ({
+              name: obj.name[0],
+              bndbox: {
+                xmin: parseInt(obj.bndbox[0].xmin[0]),
+                ymin: parseInt(obj.bndbox[0].ymin[0]),
+                xmax: parseInt(obj.bndbox[0].xmax[0]),
+                ymax: parseInt(obj.bndbox[0].ymax[0]),
+              },
+            }));
+          }
         }
+        console.log("annotations", annotations);
 
         const newMetadata = new MetadataModel({
           name: fileName,
