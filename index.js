@@ -97,7 +97,17 @@ connection
       try {
         let metadata;
         let annotations = [];
+        const fileName = req.file ? req.file.originalname : req.body.url;
 
+        // Check if a document with the same name already exists
+        const existingMetadata = await MetadataModel.findOne({
+          name: fileName,
+        });
+        if (existingMetadata) {
+          return res
+            .status(400)
+            .send("File with the same name already exists.");
+        }
         if (filePath) {
           metadata = await exiftool.read(filePath);
         } else if (req.body.url) {
