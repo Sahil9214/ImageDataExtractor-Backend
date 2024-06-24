@@ -1,0 +1,26 @@
+<annotation>
+	<folder>my Iamge</folder>
+	<filename>Utkarsh Photo.png</filename>
+	<path>C:\Users\utkar\OneDrive\Pictures\my Iamge\Utkarsh Photo.png</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>460</width>
+		<height>460</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>human(utkarsh)</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>84</xmin>
+			<ymin>15</ymin>
+			<xmax>350</xmax>
+			<ymax>341</ymax>
+		</bndbox>
+	</object>
+</annotation>
