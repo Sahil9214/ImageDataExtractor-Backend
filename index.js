@@ -157,6 +157,7 @@ const { MetadataModel } = require("./model/Image.model");
 const { connection } = require("./db");
 const cors = require("cors");
 const fs = require("fs");
+const multer = require("multer"); // Added multer import
 require("dotenv").config();
 
 const app = express();
@@ -170,13 +171,17 @@ connection
     console.log("Connected to MongoDB");
 
     app.post("/upload", upload.single("image"), async (req, res) => {
+      if (!req.file) {
+        return res.status(400).send("No file uploaded.");
+      }
+
       const filePath = req.file.path;
       try {
         const metadata = await exiftool.read(filePath);
 
         const newMetadata = new MetadataModel({
           name: req.file.originalname,
-          lastModifiedDate: req.file.lastModifiedDate,
+          lastModifiedDate: req.file.lastModifiedDate || new Date(), // Ensure lastModifiedDate is set
           size: req.file.size,
           type: req.file.mimetype,
           location: metadata.GPSPosition || "Unknown",
@@ -188,6 +193,7 @@ connection
 
         res.json(metadata);
       } catch (error) {
+        console.error("Error extracting metadata", error);
         res.status(500).send("Error extracting metadata");
       } finally {
         fs.unlink(filePath, (err) => {
@@ -203,6 +209,7 @@ connection
         const allMetadata = await MetadataModel.find({});
         res.json(allMetadata);
       } catch (error) {
+        console.error("Error fetching metadata", error);
         res.status(500).send("Error fetching metadata");
       }
     });
