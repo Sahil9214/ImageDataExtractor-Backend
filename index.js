@@ -152,6 +152,7 @@
 // });
 
 const { exiftool } = require("exiftool-vendored");
+const express = require("express");
 const { MetadataModel } = require("./model/Image.model");
 const { connection } = require("./db");
 const cors = require("cors");
