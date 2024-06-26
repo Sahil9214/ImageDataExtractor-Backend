@@ -1,14 +1,14 @@
 # Image Data Extractor - Backend
 
-This project provides the backend functionality for extracting image metadata and annotations. It works in conjunction with the frontend application, which you can find here.
+This project provides the backend functionality for extracting image metadata and annotations. It works in conjunction with the front-end application, which you can find here.
 
 ## Features
 
 - **Metadata Extraction**: Extracts relevant metadata from images.
 - **Annotation Handling**: Manages annotations associated with images.
 - **API Endpoints**:
-  - `/api/images`: Retrieves image metadata.
-  - `/api/annotations`: Handles image annotations.
+  - `/metadata`: Retrieves image metadata.
+  - `/upload`: Handles image annotations.
 
 ## Tech Stack
 
