@@ -27,8 +27,8 @@ This project provides the backend functionality for extracting image metadata an
 
 ## API Endpoints
 
-- `GET /api/images`: Retrieves image metadata.
-- `POST /api/annotations`: Adds an annotation to an image.
+- `GET /metadata`: Retrieves image metadata.
+- `POST /upload`: Adds an annotation to an image.
 
 ## Contributing
 
